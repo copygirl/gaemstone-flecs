@@ -1,0 +1,13 @@
+{
+    "editor.tabSize": 3,
+    "editor.insertSpaces": false,
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+
+    "files.exclude": {
+        "/.git/": true,
+        "**/bin/": true,
+        "**/obj/": true,
+    }
+}
