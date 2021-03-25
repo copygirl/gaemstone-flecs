@@ -28,7 +28,7 @@ namespace gaemstone
 		{
 			var minStr = $"{Min:X}";
 			var maxStr = $"{Max:X}";
-			var count  = (Math.Max(minStr.Length, maxStr.Length) + 1) / 2 * 2;
+			var count  = Math.Max(minStr.Length, maxStr.Length);
 			minStr = minStr.PadLeft(count, '0');
 			maxStr = maxStr.PadLeft(count, '0');
 			return $"EntityRange(min: 0x{minStr}, max: 0x{maxStr})";

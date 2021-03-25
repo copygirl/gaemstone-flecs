@@ -40,7 +40,7 @@ namespace gaemstone.Tests
 			var range3 = new EntityRange(0x100, 0xFFFFFFFF);
 
 			Assert.Equal("EntityRange(min: 0x00, max: 0xFF)"            , range1.ToString());
-			Assert.Equal("EntityRange(min: 0x00, max: 0x0F)"            , range2.ToString());
+			Assert.Equal("EntityRange(min: 0x0, max: 0xF)"              , range2.ToString());
 			Assert.Equal("EntityRange(min: 0x00000100, max: 0xFFFFFFFF)", range3.ToString());
 		}
 	}
