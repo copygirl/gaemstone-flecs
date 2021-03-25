@@ -1,3 +1,4 @@
+using System;
 using Xunit;
 
 namespace gaemstone.Tests
@@ -20,6 +21,32 @@ namespace gaemstone.Tests
 			             universe.GetEntityRecord(componentId)!.Type);
 
 			Assert.Equal(1, universe.GetEntityRecord(componentId)!.Archetype.Count);
+		}
+
+		[Fact]
+		public void Test_ModifyEntityType()
+		{
+			var universe = new Universe();
+			var entity   = new EntityId(0x100);
+
+			// var testComponent = new EntityId(0x10);
+			// universe.Set(testComponent, Component.Of<TestComponent>());
+
+			var value1 = new EntityId(0x101);
+			var value2 = new EntityId(0x102);
+			var value3 = new EntityId(0x103);
+
+			universe.ModifyEntityType(entity, previousType => {
+				Assert.Equal(EntityType.Empty, previousType);
+				return new(value1, value2, value3);
+			});
+
+			universe.ModifyEntityType(entity, previousType => {
+				Assert.Equal(new(value1, value2, value3), previousType);
+				return new();
+			});
+
+			Assert.Equal(new(), universe.GetEntityType(entity));
 		}
 
 		[Fact]
@@ -50,6 +77,43 @@ namespace gaemstone.Tests
 		}
 
 		[Fact]
+		public void Test_Set()
+		{
+			var universe = new Universe();
+			var entity   = new EntityId(0x100);
+
+			// Adding a component that's not known as a Component in Universe causes an exception.
+			Assert.Throws<InvalidOperationException>(() => universe.Set(entity, default(TestComponent)));
+
+			var testComponent = new EntityId(0x10);
+			universe.Set(testComponent, Component.Of<TestComponent>());
+
+			universe.Set(entity, new TestComponent(10, 20));
+			Assert.Equal(10, universe.GetStruct<TestComponent>(entity)!.Value.X);
+			Assert.Equal(20, universe.GetStruct<TestComponent>(entity)!.Value.Y);
+		}
+
+		[Fact]
+		public void Test_Set_MoveArchetype()
+		{
+			var universe = new Universe();
+			var entity   = new EntityId(0x100);
+
+			var testComponent = new EntityId(0x10);
+			universe.Set(testComponent, Component.Of<TestComponent>());
+
+			universe.Set(entity, new TestComponent(10, 20));
+			Assert.Equal(10, universe.GetStruct<TestComponent>(entity)!.Value.X);
+			Assert.Equal(20, universe.GetStruct<TestComponent>(entity)!.Value.Y);
+
+			var flag = new EntityId(0x200);
+			universe.Add(entity, flag);
+			// After changing entity's Type by adding flag, component values should've been moved to another Archetype.
+			Assert.Equal(10, universe.GetStruct<TestComponent>(entity)!.Value.X);
+			Assert.Equal(20, universe.GetStruct<TestComponent>(entity)!.Value.Y);
+		}
+
+		[Fact]
 		public void Test_ToPrettyString()
 		{
 			var universe = new Universe();
@@ -64,8 +128,8 @@ namespace gaemstone.Tests
 
 		struct TestComponent
 		{
-			public int Value1;
-			public byte Value2;
+			public int X; public byte Y;
+			public TestComponent(int x, byte y) { X = x; Y = y; }
 		}
 	}
 }

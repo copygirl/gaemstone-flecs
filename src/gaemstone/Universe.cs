@@ -56,43 +56,60 @@ namespace gaemstone
 
 
 		public Record Add(EntityId entity, EntityId value)
+			=> ModifyEntityType(entity, type => type.Add(value));
+		public Record Remove(EntityId entity, EntityId value)
+			=> ModifyEntityType(entity, type => type.Remove(value));
+
+		public Record SetEntityType(EntityId entity, EntityType type)
+			=> ModifyEntityType(entity, _ => type);
+		public Record ModifyEntityType(EntityId entity, Func<EntityType, EntityType> func)
 		{
-			if (GetEntityRecord(entity) is Record record) {
-				var oldType = record.Type;
-				var newType = oldType.Add(value);
-				if (newType == oldType) return record;
+			var record = GetEntityRecord(entity);
+			var type   = func(record?.Type ?? EntityType.Empty);
+			if (!_archetypes.TryGetValue(type, out var target))
+				target = CreateArchetype(type);
 
-				if (!_archetypes.TryGetValue(newType, out var newArchetype))
-					newArchetype = CreateArchetype(newType);
-
-				var newRow = newArchetype.Add(entity);
-
-				// Move over entries from old to new archetype.
-				var newColumns = ((IEnumerable<Array>)newArchetype.Columns).GetEnumerator();
-				foreach (var column in record.Archetype.Columns) {
-					newColumns.MoveNext();
-					// Skip non-component columns.
-					if (column == null) continue;
-					// Skip the columns in newArchetype that don't exist in record.Archetype.
-					// Since columns are built from EntityType which is sorted, MoveNext works.
-					// This could technically be an if-statement, because this can only occur once
-					// when adding a single entry, but was left a while-loop for the sake of clarity.
-					while (column.GetType() != newColumns.Current?.GetType()) newColumns.MoveNext();
-					// Copy value from old column to new one.
-					Array.Copy(column, record.Row, newColumns.Current, newRow, 1);
-				}
-
-				record.Archetype.Remove(record.Row);
-				record.Archetype = newArchetype;
-				record.Row       = newRow;
-				return record;
-			} else {
-				var archetype = RootArchetype.With(value);
-				record = new(archetype, archetype.Add(entity));
+			if (record == null) {
+				record = new(target, target.Add(entity));
 				_entities.Add(entity, record);
-				return record;
-			}
+			} else if (target != record.Archetype)
+				MoveRow(entity, record, target);
+
+			return record;
 		}
+
+		static void MoveRow(EntityId entity, Record from, Archetype to)
+		{
+			// Add the entity to the new Archetype, and get the row index.
+			var newRow = to.Add(entity);
+
+			var oldType = from.Archetype.Type;
+			var newType = to.Type;
+
+			// Iterate the old and new types and when they overlap (have the
+			// same entry), attempt to move data over to the new Archetype.
+			var oldIndex = 0;
+			var newIndex = 0;
+			while ((oldIndex < oldType.Count) && (newIndex < newType.Count)) {
+				var diff = oldType[oldIndex].CompareTo(newType[newIndex]);
+				if (diff == 0) {
+					// Only copy if the column actually exists (is a component).
+					if (from.Archetype.Columns[oldIndex] is Array column)
+						Array.Copy(column, from.Row, to.Columns[newIndex], newRow, 1);
+					newIndex++;
+					oldIndex++;
+				}
+				// If the entries are not the same, advance only one of them.
+				// Since the entries in EntityType are sorted, we can do this.
+				else   if (diff > 0)   newIndex++;
+				else /*if (diff < 0)*/ oldIndex++;
+			}
+
+			from.Archetype.Remove(from.Row);
+			from.Archetype = to;
+			from.Row       = newRow;
+		}
+
 
 		public void Set<T>(EntityId entity, T value)
 		{
@@ -117,6 +134,7 @@ namespace gaemstone
 		public EntityId GetComponentTypeIdOrThrow(Type type)
 			=> GetComponentTypeId(type) ?? throw new InvalidOperationException(
 				$"The specified component type {type.Name} cannot be found as an entity");
+
 
 		public Record? GetEntityRecord(EntityId entity)
 			=> _entities.TryGetValue(entity, out var value) ? value : null;
