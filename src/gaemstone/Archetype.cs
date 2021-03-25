@@ -81,7 +81,7 @@ namespace gaemstone
 					if (column != null)
 						Array.Copy(column, Count, column, row, 1);
 				// Update the moved element's Record to point to its new row.
-				Universe.GetEntityRecord(_entities[row])!.Row = row;
+				Universe.Entities[_entities[row]] = new(this, row);
 			}
 
 			//	Clear out the last element.

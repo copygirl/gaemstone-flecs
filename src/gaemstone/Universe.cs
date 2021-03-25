@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
+using static gaemstone.EntityManager;
 
 namespace gaemstone
 {
@@ -11,17 +11,7 @@ namespace gaemstone
 		public static readonly EntityId IDENTIFIER_ID = new(0x02);
 
 
-		readonly Dictionary<EntityId, Record> _entities = new();
-		public IReadOnlyDictionary<EntityId, Record> Entities { get; }
-
-		public class Record
-		{
-			public Archetype Archetype { get; set; }
-			public int Row { get; set; }
-			public EntityType Type => Archetype.Type;
-			public Record(Archetype archetype, int row)
-				{ Archetype = archetype; Row = row; }
-		}
+		public EntityManager Entities { get; }
 
 		readonly Dictionary<EntityType, Archetype> _archetypes = new();
 		public Archetype RootArchetype { get; }
@@ -29,7 +19,7 @@ namespace gaemstone
 
 		public Universe()
 		{
-			Entities = new ReadOnlyDictionary<EntityId, Record>(_entities);
+			Entities      = new(this);
 			RootArchetype = CreateArchetype(EntityType.Empty);
 
 			// Bootstrap the initial `[Component]` Archetype so other methods work in the first place.
@@ -64,21 +54,19 @@ namespace gaemstone
 			=> ModifyEntityType(entity, _ => type);
 		public Record ModifyEntityType(EntityId entity, Func<EntityType, EntityType> func)
 		{
-			var record = GetEntityRecord(entity);
-			var type   = func(record?.Type ?? EntityType.Empty);
+			var found = Entities.TryGet(entity, out var record);
+			var type  = func(found ? record.Type : EntityType.Empty);
+			if (found && (record.Type == type)) return record;
+
 			if (!_archetypes.TryGetValue(type, out var target))
 				target = CreateArchetype(type);
 
-			if (record == null) {
-				record = new(target, target.Add(entity));
-				_entities.Add(entity, record);
-			} else if (target != record.Archetype)
-				MoveRow(entity, record, target);
-
-			return record;
+			return Entities[entity] = found
+				? MoveRow(entity, record, target)
+				: new(target, target.Add(entity));
 		}
 
-		static void MoveRow(EntityId entity, Record from, Archetype to)
+		static Record MoveRow(EntityId entity, Record from, Archetype to)
 		{
 			// Add the entity to the new Archetype, and get the row index.
 			var newRow = to.Add(entity);
@@ -106,8 +94,7 @@ namespace gaemstone
 			}
 
 			from.Archetype.Remove(from.Row);
-			from.Archetype = to;
-			from.Row       = newRow;
+			return new(to, newRow);
 		}
 
 
@@ -136,20 +123,16 @@ namespace gaemstone
 				$"The specified component type {type.Name} cannot be found as an entity");
 
 
-		public Record? GetEntityRecord(EntityId entity)
-			=> _entities.TryGetValue(entity, out var value) ? value : null;
-
-		public EntityType? GetEntityType(EntityId entity)
-			=> GetEntityRecord(entity)?.Archetype?.Type;
+		public EntityType GetEntityType(EntityId entity) => Entities[entity].Type;
 
 
 		public T? Get<T>(EntityId entity) where T : class
-			=> (GetEntityRecord(entity) is Record record)
+			=> Entities.TryGet(entity, out var record)
 				? record.Archetype.Columns.OfType<T[]>().First()[record.Row]
 				: null;
 
 		public T? GetStruct<T>(EntityId entity) where T : struct
-			=> (GetEntityRecord(entity) is Record record)
+			=> Entities.TryGet(entity, out var record)
 				? record.Archetype.Columns.OfType<T[]>().First()[record.Row]
 				: null;
 	}
