@@ -20,7 +20,7 @@ namespace gaemstone
 			(Min, Max) = (min, max);
 		}
 
-		public bool Contains(EntityId entity)
+		public bool Contains(EcsId entity)
 			=> (entity.ID >= Min) && (entity.ID <= Max);
 
 

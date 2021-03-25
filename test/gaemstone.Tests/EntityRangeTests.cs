@@ -7,13 +7,13 @@ namespace gaemstone.Tests
 		[Fact]
 		public void Test_Contains()
 		{
-			var entity1         = new EntityId(0x20);
-			var entity1WithGen  = new EntityId(0x20, 20);
-			var entity1WithRole = new EntityId(0x20, role: EntityRole.ChildOf);
+			var entity1         = new EcsId(0x20);
+			var entity1WithGen  = new EcsId(0x20, 20);
+			var entity1WithRole = new EcsId(0x20, (EcsRole)0xFF);
 
-			var entity2         = new EntityId(0x200);
-			var entity2WithGen  = new EntityId(0x200, 20);
-			var entity2WithRole = new EntityId(0x200, role: EntityRole.ChildOf);
+			var entity2         = new EcsId(0x200);
+			var entity2WithGen  = new EcsId(0x200, 20);
+			var entity2WithRole = new EcsId(0x200, (EcsRole)0xFF);
 
 			var range1 = EntityRange.Components;
 			Assert.True(range1.Contains(entity1));

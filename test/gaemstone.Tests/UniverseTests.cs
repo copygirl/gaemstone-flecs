@@ -16,7 +16,7 @@ namespace gaemstone.Tests
 
 			Assert.Equal(2, universe.Entities[componentId].Archetype.Count);
 
-			var testId = new EntityId(0x100);
+			var testId = new EcsId(0x100);
 			universe.Add(componentId, testId);
 			Assert.Equal(new []{ componentId, Universe.IDENTIFIER_ID, testId },
 			             universe.Entities[componentId].Type);
@@ -28,14 +28,14 @@ namespace gaemstone.Tests
 		public void Test_ModifyEntityType()
 		{
 			var universe = new Universe();
-			var entity   = new EntityId(0x100);
+			var entity   = new EcsId(0x100);
 
 			// var testComponent = new EntityId(0x10);
 			// universe.Set(testComponent, Component.Of<TestComponent>());
 
-			var value1 = new EntityId(0x101);
-			var value2 = new EntityId(0x102);
-			var value3 = new EntityId(0x103);
+			var value1 = new EcsId(0x101);
+			var value2 = new EcsId(0x102);
+			var value3 = new EcsId(0x103);
 
 			universe.ModifyEntityType(entity, previousType => {
 				Assert.Equal(EntityType.Empty, previousType);
@@ -55,10 +55,10 @@ namespace gaemstone.Tests
 		{
 			var universe = new Universe();
 
-			var entity1 = new EntityId(0x100);
-			var entity2 = new EntityId(0x200);
-			var entity3 = new EntityId(0x300);
-			var entity4 = new EntityId(0x400);
+			var entity1 = new EcsId(0x100);
+			var entity2 = new EcsId(0x200);
+			var entity3 = new EcsId(0x300);
+			var entity4 = new EcsId(0x400);
 
 			Assert.False(universe.Entities.TryGet(entity1, out _));
 			Assert.Throws<KeyNotFoundException>(() => universe.Entities[entity1]);
@@ -82,12 +82,12 @@ namespace gaemstone.Tests
 		public void Test_Set()
 		{
 			var universe = new Universe();
-			var entity   = new EntityId(0x100);
+			var entity   = new EcsId(0x100);
 
 			// Adding a component that's not known as a Component in Universe causes an exception.
 			Assert.Throws<InvalidOperationException>(() => universe.Set(entity, default(TestComponent)));
 
-			var testComponent = new EntityId(0x10);
+			var testComponent = new EcsId(0x10);
 			universe.Set(testComponent, Component.Of<TestComponent>());
 
 			universe.Set(entity, new TestComponent(10, 20));
@@ -99,16 +99,16 @@ namespace gaemstone.Tests
 		public void Test_Set_MoveArchetype()
 		{
 			var universe = new Universe();
-			var entity   = new EntityId(0x100);
+			var entity   = new EcsId(0x100);
 
-			var testComponent = new EntityId(0x10);
+			var testComponent = new EcsId(0x10);
 			universe.Set(testComponent, Component.Of<TestComponent>());
 
 			universe.Set(entity, new TestComponent(10, 20));
 			Assert.Equal(10, universe.GetStruct<TestComponent>(entity)!.Value.X);
 			Assert.Equal(20, universe.GetStruct<TestComponent>(entity)!.Value.Y);
 
-			var flag = new EntityId(0x200);
+			var flag = new EcsId(0x200);
 			universe.Add(entity, flag);
 			// After changing entity's Type by adding flag, component values should've been moved to another Archetype.
 			Assert.Equal(10, universe.GetStruct<TestComponent>(entity)!.Value.X);
@@ -122,7 +122,7 @@ namespace gaemstone.Tests
 			Assert.Equal("Component", Universe.COMPONENT_ID.ToPrettyString(universe));
 			Assert.Equal("Identifier", Universe.IDENTIFIER_ID.ToPrettyString(universe));
 
-			var testId = new EntityId(0x100);
+			var testId = new EcsId(0x100);
 			universe.Add(Universe.COMPONENT_ID, testId);
 			Assert.Equal("[Component, Identifier, 0x100]",
 			             universe.GetEntityType(Universe.COMPONENT_ID).ToPrettyString(universe));

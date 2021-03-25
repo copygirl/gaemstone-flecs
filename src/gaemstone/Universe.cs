@@ -7,8 +7,8 @@ namespace gaemstone
 {
 	public class Universe
 	{
-		public static readonly EntityId COMPONENT_ID  = new(0x01);
-		public static readonly EntityId IDENTIFIER_ID = new(0x02);
+		public static readonly EcsId COMPONENT_ID  = new(0x01);
+		public static readonly EcsId IDENTIFIER_ID = new(0x02);
 
 
 		public EntityManager Entities { get; }
@@ -45,14 +45,14 @@ namespace gaemstone
 		}
 
 
-		public Record Add(EntityId entity, EntityId value)
+		public Record Add(EcsId entity, EcsId value)
 			=> ModifyEntityType(entity, type => type.Add(value));
-		public Record Remove(EntityId entity, EntityId value)
+		public Record Remove(EcsId entity, EcsId value)
 			=> ModifyEntityType(entity, type => type.Remove(value));
 
-		public Record SetEntityType(EntityId entity, EntityType type)
+		public Record SetEntityType(EcsId entity, EntityType type)
 			=> ModifyEntityType(entity, _ => type);
-		public Record ModifyEntityType(EntityId entity, Func<EntityType, EntityType> func)
+		public Record ModifyEntityType(EcsId entity, Func<EntityType, EntityType> func)
 		{
 			var found = Entities.TryGet(entity, out var record);
 			var type  = func(found ? record.Type : EntityType.Empty);
@@ -66,7 +66,7 @@ namespace gaemstone
 				: new(target, target.Add(entity));
 		}
 
-		static Record MoveRow(EntityId entity, Record from, Archetype to)
+		static Record MoveRow(EcsId entity, Record from, Archetype to)
 		{
 			// Add the entity to the new Archetype, and get the row index.
 			var newRow = to.Add(entity);
@@ -98,7 +98,7 @@ namespace gaemstone
 		}
 
 
-		public void Set<T>(EntityId entity, T value)
+		public void Set<T>(EcsId entity, T value)
 		{
 			var componentId = GetComponentTypeIdOrThrow(typeof(T));
 			var record      = Add(entity, componentId);
@@ -107,7 +107,7 @@ namespace gaemstone
 		}
 
 
-		public EntityId? GetComponentTypeId(Type type)
+		public EcsId? GetComponentTypeId(Type type)
 		{
 			foreach (var archetype in RootArchetype.With(COMPONENT_ID).Enumerate()) {
 				var componentColumn = archetype.Columns.OfType<Component[]>().FirstOrDefault();
@@ -118,20 +118,20 @@ namespace gaemstone
 			}
 			return null;
 		}
-		public EntityId GetComponentTypeIdOrThrow(Type type)
+		public EcsId GetComponentTypeIdOrThrow(Type type)
 			=> GetComponentTypeId(type) ?? throw new InvalidOperationException(
 				$"The specified component type {type.Name} cannot be found as an entity");
 
 
-		public EntityType GetEntityType(EntityId entity) => Entities[entity].Type;
+		public EntityType GetEntityType(EcsId entity) => Entities[entity].Type;
 
 
-		public T? Get<T>(EntityId entity) where T : class
+		public T? Get<T>(EcsId entity) where T : class
 			=> Entities.TryGet(entity, out var record)
 				? record.Archetype.Columns.OfType<T[]>().First()[record.Row]
 				: null;
 
-		public T? GetStruct<T>(EntityId entity) where T : struct
+		public T? GetStruct<T>(EcsId entity) where T : struct
 			=> Entities.TryGet(entity, out var record)
 				? record.Archetype.Columns.OfType<T[]>().First()[record.Row]
 				: null;

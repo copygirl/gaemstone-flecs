@@ -7,55 +7,57 @@ namespace gaemstone.Tests
 		[Fact]
 		public void Test_Properties()
 		{
-			var entityWithGen = new EntityId(0x200, 20);
-			Assert.Equal(0x200u, entityWithGen.ID);
+			var entityWithGen = new EcsId(0x200, 20);
+			Assert.Equal((uint)0x200, entityWithGen.ID);
 			Assert.Equal((ushort)20, entityWithGen.Generation);
-			Assert.Equal(EntityRole.None, entityWithGen.Role);
-			Assert.Null(entityWithGen.Trait);
+			Assert.Equal(EcsRole.None, entityWithGen.Role);
 
-			var entityWithRole = new EntityId(0x300, 30, EntityRole.InstanceOf);
-			Assert.Equal(0x300u, entityWithRole.ID);
+			// TODO: Due to lack of non-Pair role, create a "fake" role.
+			var entityWithRole = new EcsId(0x300, 30, (EcsRole)0xFF);
+			Assert.Equal((uint)0x300, entityWithRole.ID);
 			Assert.Equal((ushort)30, entityWithRole.Generation);
-			Assert.Equal(EntityRole.InstanceOf, entityWithRole.Role);
-			Assert.Null(entityWithRole.Trait);
+			Assert.Equal((EcsRole)0xFF, entityWithRole.Role);
 		}
 
 		[Fact]
-		public void Test_Traits()
+		public void Test_Pairs()
 		{
-			var componentId = new EntityId(0x01);
-			var traitId     = new EntityId(0x02);
+			var relation = new EcsId(0x100);
+			var target   = new EcsId(0x200);
 
-			var trait = new EntityId(componentId, traitId);
-			Assert.Equal(0x01u, trait.ID);
-			Assert.Null(trait.Generation);
-			Assert.Equal(EntityRole.Trait, trait.Role);
-			Assert.Equal((componentId, traitId), trait.Trait);
+			var pair = EcsId.Pair(relation, target);
+			Assert.Equal((uint)0x200, pair.ID);
+			Assert.Equal(EcsRole.Pair, pair.Role);
+			Assert.Equal((relation, target), pair.ToPair());
 
-			var entityWithGen  = new EntityId(0x200, 20);
-			var entityWithRole = new EntityId(0x300, 30, EntityRole.InstanceOf);
+			var relationWithGen = new EcsId(0x300, 30);
+			var targetWithRole  = new EcsId(0x400, 40, (EcsRole)0xFF);
 
-			var trait2 = new EntityId(entityWithGen, entityWithRole);
-			// Traits will lose any Generation and Role information.
-			Assert.NotEqual((entityWithGen, entityWithRole), entityWithGen.Trait);
-			Assert.Equal(entityWithGen.ID, trait2.Trait!.Value.ComponentId.ID);
-			Assert.Equal(entityWithRole.ID, trait2.Trait!.Value.TraitId.ID);
+			var pair2 = EcsId.Pair(relationWithGen, targetWithRole);
+			Assert.Equal((relation, target), pair.ToPair());
+			Assert.Equal((uint)0x300, pair2.ToPair().Relation.ID);
+			Assert.Equal((uint)0x400, pair2.ToPair().Target.ID);
+			// Pairs will lose any Generation and Role information.
+			Assert.NotEqual((relationWithGen, targetWithRole), pair2.ToPair());
+			Assert.Equal(0, pair2.ToPair().Relation.Generation);
+			Assert.Equal(EcsRole.None, pair2.ToPair().Target.Role);
 		}
 
 		[Fact]
 		public void Test_ToString()
 		{
-			var entity         = new EntityId(0x100);
-			var entityWithGen  = new EntityId(0x200, 20);
-			var entityWithRole = new EntityId(0x300, role: EntityRole.InstanceOf);
-			var entityWithBoth = new EntityId(0x400, 40, EntityRole.InstanceOf);
-			Assert.Equal("EntityId(id: 0x100)", entity.ToString());
-			Assert.Equal("EntityId(id: 0x200, generation: 20)", entityWithGen.ToString());
-			Assert.Equal("EntityId(id: 0x300, role: InstanceOf)", entityWithRole.ToString());
-			Assert.Equal("EntityId(id: 0x400, generation: 40, role: InstanceOf)", entityWithBoth.ToString());
+			var entity         = new EcsId(0x100);
+			var entityWithGen  = new EcsId(0x200, 20);
+			// TODO: Due to lack of non-Pair role, create "fake" roles.
+			var entityWithRole = new EcsId(0x300, (EcsRole)230);
+			var entityWithBoth = new EcsId(0x400, 40, (EcsRole)240);
+			Assert.Equal("EcsId(id: 0x100)", entity.ToString());
+			Assert.Equal("EcsId(id: 0x200, generation: 20)", entityWithGen.ToString());
+			Assert.Equal("EcsId(id: 0x300, role: 230)", entityWithRole.ToString());
+			Assert.Equal("EcsId(id: 0x400, generation: 40, role: 240)", entityWithBoth.ToString());
 
-			var trait = new EntityId(entity, entityWithGen);
-			Assert.Equal("EntityId(componentId: 0x100, traitId: 0x200)", trait.ToString());
+			var pair = EcsId.Pair(entity, entityWithGen);
+			Assert.Equal("EcsId.Pair(relation: 0x100, target: 0x200)", pair.ToString());
 		}
 	}
 }

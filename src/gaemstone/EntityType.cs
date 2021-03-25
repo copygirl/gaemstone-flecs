@@ -7,20 +7,20 @@ using System.Linq;
 namespace gaemstone
 {
 	public class EntityType
-		: IEquatable<EntityType>, IReadOnlyList<EntityId>
+		: IEquatable<EntityType>, IReadOnlyList<EcsId>
 	{
-		public static readonly EntityType Empty = new(Enumerable.Empty<EntityId>());
+		public static readonly EntityType Empty = new(Enumerable.Empty<EcsId>());
 
 
-		readonly ImmutableList<EntityId> _entries;
+		readonly ImmutableList<EcsId> _entries;
 		readonly int _hashCode;
 
 		public int Count => _entries.Count;
-		public EntityId this[int index] => _entries[index];
+		public EcsId this[int index] => _entries[index];
 
-		public EntityType(params EntityId[] entries)
-			: this((IEnumerable<EntityId>)entries) {  }
-		public EntityType(IEnumerable<EntityId> entries)
+		public EntityType(params EcsId[] entries)
+			: this((IEnumerable<EcsId>)entries) {  }
+		public EntityType(IEnumerable<EcsId> entries)
 		{
 			_entries = entries
 				.OrderBy(id => id)
@@ -32,24 +32,24 @@ namespace gaemstone
 			_hashCode = hashCode.ToHashCode();
 		}
 
-		public int IndexOf(EntityId value)
+		public int IndexOf(EcsId value)
 			=> _entries.IndexOf(value);
-		public bool Contains(EntityId value)
+		public bool Contains(EcsId value)
 			=> _entries.Contains(value);
 
 
-		public EntityType Add(params EntityId[] values)
-			=> Add((IEnumerable<EntityId>)values);
-		public EntityType Add(IEnumerable<EntityId> values)
+		public EntityType Add(params EcsId[] values)
+			=> Add((IEnumerable<EcsId>)values);
+		public EntityType Add(IEnumerable<EcsId> values)
 			=> new(_entries.Concat(values));
 
-		public EntityType Remove(params EntityId[] values)
-			=> Remove((IEnumerable<EntityId>)values);
-		public EntityType Remove(IEnumerable<EntityId> values)
+		public EntityType Remove(params EcsId[] values)
+			=> Remove((IEnumerable<EcsId>)values);
+		public EntityType Remove(IEnumerable<EcsId> values)
 			=> new(_entries.Except(values));
 
 
-		public IEnumerator<EntityId> GetEnumerator()
+		public IEnumerator<EcsId> GetEnumerator()
 			=> _entries.GetEnumerator();
 		IEnumerator IEnumerable.GetEnumerator()
 			=> GetEnumerator();

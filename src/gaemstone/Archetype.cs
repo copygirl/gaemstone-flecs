@@ -12,13 +12,13 @@ namespace gaemstone
 		public EntityType Type { get; }
 
 		Array[]? _columns;
-		EntityId[]? _entities;
+		EcsId[]? _entities;
 
 		public int Count { get; private set; }
 		public int Capacity => _entities?.Length ?? 0;
 
-		public Array[] Columns => _columns ?? Array.Empty<Array>();
-		public EntityId[] Entities => _entities ?? Array.Empty<EntityId>();
+		public Array[] Columns  => _columns  ?? Array.Empty<Array>();
+		public EcsId[] Entities => _entities ?? Array.Empty<EcsId>();
 
 		internal Archetype(Universe universe, EntityType type)
 		{
@@ -34,7 +34,7 @@ namespace gaemstone
 
 			// FIXME: Non-components would never have columns. Don't reserve space for them!
 			if (_entities == null) {
-				_entities = new EntityId[length];
+				_entities = new EcsId[length];
 				_columns  = new Array[Type.Count];
 				for (var i = 0; i < Type.Count; i++) {
 					var arrayType = Universe.GetStruct<Component>(Type[i])?.Type;
@@ -42,7 +42,7 @@ namespace gaemstone
 					_columns[i] = Array.CreateInstance(arrayType, length);
 				}
 			} else {
-				var newEntities = new EntityId[length];
+				var newEntities = new EcsId[length];
 				Array.Copy(_entities, newEntities, Math.Min(_entities.Length, length));
 				_entities = newEntities;
 				for (var i = 0; i < Type.Count; i++) {
@@ -62,7 +62,7 @@ namespace gaemstone
 		}
 
 
-		internal int Add(EntityId entity)
+		internal int Add(EcsId entity)
 		{
 			EnsureCapacity();
 			_entities![Count] = entity;
@@ -85,7 +85,7 @@ namespace gaemstone
 			}
 
 			//	Clear out the last element.
-			_entities![Count] = EntityId.None;
+			_entities![Count] = default;
 			foreach (var column in _columns!)
 				if (column != null)
 					Array.Clear(column, Count, 1);
@@ -93,7 +93,7 @@ namespace gaemstone
 
 
 		Edge[]? _componentEdges;
-		RefDictionary<EntityId, Edge>? _entityEdges;
+		RefDictionary<EcsId, Edge>? _entityEdges;
 		struct Edge
 		{
 			public Archetype? Add;
@@ -128,7 +128,7 @@ namespace gaemstone
 							yield return archetype;
 		}
 
-		ref Edge GetEdge(EntityId id)
+		ref Edge GetEdge(EcsId id)
 		{
 			if (EntityRange.Components.Contains(id)) {
 				if (_componentEdges == null)
@@ -145,13 +145,13 @@ namespace gaemstone
 		/// When the specified EntityId is removed from Type, it points to the other.
 		/// When the specified EntityId is added to <c>other.Type</c>, it points to this.
 		/// </summary>
-		internal void ConnectEdges(EntityId removed, Archetype other)
+		internal void ConnectEdges(EcsId removed, Archetype other)
 		{
 			GetEdge(removed).Remove = other;
 			other.GetEdge(removed).Add = this;
 		}
 
-		public Archetype With(EntityId id)
+		public Archetype With(EcsId id)
 		{
 			ref var archetype = ref GetEdge(id).Add;
 			if (archetype != null) return archetype;
