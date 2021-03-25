@@ -136,7 +136,7 @@ namespace gaemstone
 				return ref _componentEdges[id.ID];
 			} else {
 				if (_entityEdges == null) _entityEdges = new();
-				return ref _entityEdges.TryGetEntry(GetBehavior.Create, id).Value;
+				return ref _entityEdges.GetEntry(GetBehavior.Create, id).Value;
 			}
 		}
 
