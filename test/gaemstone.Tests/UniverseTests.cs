@@ -23,6 +23,33 @@ namespace gaemstone.Tests
 		}
 
 		[Fact]
+		public void Test_Add()
+		{
+			var universe = new Universe();
+
+			var entity1 = new EntityId(0x100);
+			var entity2 = new EntityId(0x200);
+			var entity3 = new EntityId(0x300);
+			var entity4 = new EntityId(0x400);
+
+			Assert.Null(universe.GetEntityType(entity1));
+
+			universe.Add(entity1, entity2);
+			universe.Add(entity1, entity3);
+			universe.Add(entity1, entity4);
+
+			universe.Add(entity2, entity3);
+			universe.Add(entity2, entity4);
+
+			universe.Add(entity3, entity4);
+
+			Assert.Equal(new []{ entity2, entity3, entity4 }, universe.GetEntityType(entity1));
+			Assert.Equal(new []{ entity3, entity4          }, universe.GetEntityType(entity2));
+			Assert.Equal(new []{ entity4                   }, universe.GetEntityType(entity3));
+			Assert.Null(universe.GetEntityType(entity4));
+		}
+
+		[Fact]
 		public void Test_ToPrettyString()
 		{
 			var universe = new Universe();
@@ -33,6 +60,12 @@ namespace gaemstone.Tests
 			universe.Add(Universe.COMPONENT_ID, testId);
 			Assert.Equal("[Component, Identifier, 0x100]",
 			             universe.GetEntityType(Universe.COMPONENT_ID)!.ToPrettyString(universe));
+		}
+
+		struct TestComponent
+		{
+			public int Value1;
+			public byte Value2;
 		}
 	}
 }
