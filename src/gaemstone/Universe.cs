@@ -35,10 +35,10 @@ namespace gaemstone
 			// Bootstrap the initial `[Component]` Archetype so other methods work in the first place.
 			var record = Add(COMPONENT_ID, COMPONENT_ID);
 			var column = new Component[record.Archetype.Capacity];
-			column[0]  = new(typeof(Component));
+			column[0]  = Component.Of<Component>();
 			record.Archetype.Columns[0] = column;
 
-			Set(IDENTIFIER_ID, new Component(typeof(Identifier)));
+			Set(IDENTIFIER_ID, Component.Of<Identifier>());
 			Set(COMPONENT_ID, new Identifier(nameof(Component)));
 			Set(IDENTIFIER_ID, new Identifier(nameof(Identifier)));
 		}
