@@ -10,7 +10,7 @@ namespace gaemstone
 		{
 			public Archetype Archetype { get; }
 			public int Row { get; }
-			public EntityType Type => Archetype.Type;
+			public EcsType Type => Archetype.Type;
 			public Record(Archetype archetype, int row)
 				{ Archetype = archetype; Row = row; }
 		}

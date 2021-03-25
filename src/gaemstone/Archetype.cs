@@ -9,7 +9,7 @@ namespace gaemstone
 		const int INITIAL_CAPACITY = 64;
 
 		public Universe Universe { get; }
-		public EntityType Type { get; }
+		public EcsType Type { get; }
 
 		Array[]? _columns;
 		EcsId[]? _entities;
@@ -20,7 +20,7 @@ namespace gaemstone
 		public Array[] Columns  => _columns  ?? Array.Empty<Array>();
 		public EcsId[] Entities => _entities ?? Array.Empty<EcsId>();
 
-		internal Archetype(Universe universe, EntityType type)
+		internal Archetype(Universe universe, EcsType type)
 		{
 			Universe = universe;
 			Type     = type;
@@ -130,9 +130,9 @@ namespace gaemstone
 
 		ref Edge GetEdge(EcsId id)
 		{
-			if (EntityRange.Components.Contains(id)) {
+			if (EcsIdRange.Components.Contains(id)) {
 				if (_componentEdges == null)
-					_componentEdges = new Edge[EntityRange.Components.Count];
+					_componentEdges = new Edge[EcsIdRange.Components.Count];
 				return ref _componentEdges[id.ID];
 			} else {
 				if (_entityEdges == null) _entityEdges = new();

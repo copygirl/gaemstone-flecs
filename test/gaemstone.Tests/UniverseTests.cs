@@ -38,7 +38,7 @@ namespace gaemstone.Tests
 			var value3 = new EcsId(0x103);
 
 			universe.ModifyEntityType(entity, previousType => {
-				Assert.Equal(EntityType.Empty, previousType);
+				Assert.Equal(EcsType.Empty, previousType);
 				return new(value1, value2, value3);
 			});
 

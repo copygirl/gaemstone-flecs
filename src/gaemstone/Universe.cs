@@ -13,14 +13,14 @@ namespace gaemstone
 
 		public EntityManager Entities { get; }
 
-		readonly Dictionary<EntityType, Archetype> _archetypes = new();
+		readonly Dictionary<EcsType, Archetype> _archetypes = new();
 		public Archetype RootArchetype { get; }
 
 
 		public Universe()
 		{
 			Entities      = new(this);
-			RootArchetype = CreateArchetype(EntityType.Empty);
+			RootArchetype = CreateArchetype(EcsType.Empty);
 
 			// Bootstrap the initial `[Component]` Archetype so other methods work in the first place.
 			var record = Add(COMPONENT_ID, COMPONENT_ID);
@@ -34,7 +34,7 @@ namespace gaemstone
 		}
 
 
-		public Archetype CreateArchetype(EntityType type)
+		public Archetype CreateArchetype(EcsType type)
 		{
 			var archetype = new Archetype(this, type);
 			_archetypes.Add(type, archetype);
@@ -50,12 +50,12 @@ namespace gaemstone
 		public Record Remove(EcsId entity, EcsId value)
 			=> ModifyEntityType(entity, type => type.Remove(value));
 
-		public Record SetEntityType(EcsId entity, EntityType type)
+		public Record SetEntityType(EcsId entity, EcsType type)
 			=> ModifyEntityType(entity, _ => type);
-		public Record ModifyEntityType(EcsId entity, Func<EntityType, EntityType> func)
+		public Record ModifyEntityType(EcsId entity, Func<EcsType, EcsType> func)
 		{
 			var found = Entities.TryGet(entity, out var record);
-			var type  = func(found ? record.Type : EntityType.Empty);
+			var type  = func(found ? record.Type : EcsType.Empty);
 			if (found && (record.Type == type)) return record;
 
 			if (!_archetypes.TryGetValue(type, out var target))
@@ -123,7 +123,7 @@ namespace gaemstone
 				$"The specified component type {type.Name} cannot be found as an entity");
 
 
-		public EntityType GetEntityType(EcsId entity) => Entities[entity].Type;
+		public EcsType GetEntityType(EcsId entity) => Entities[entity].Type;
 
 
 		public T? Get<T>(EcsId entity) where T : class

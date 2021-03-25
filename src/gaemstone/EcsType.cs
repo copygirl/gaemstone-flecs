@@ -6,10 +6,10 @@ using System.Linq;
 
 namespace gaemstone
 {
-	public class EntityType
-		: IEquatable<EntityType>, IReadOnlyList<EcsId>
+	public class EcsType
+		: IEquatable<EcsType>, IReadOnlyList<EcsId>
 	{
-		public static readonly EntityType Empty = new(Enumerable.Empty<EcsId>());
+		public static readonly EcsType Empty = new(Enumerable.Empty<EcsId>());
 
 
 		readonly ImmutableList<EcsId> _entries;
@@ -18,9 +18,9 @@ namespace gaemstone
 		public int Count => _entries.Count;
 		public EcsId this[int index] => _entries[index];
 
-		public EntityType(params EcsId[] entries)
+		public EcsType(params EcsId[] entries)
 			: this((IEnumerable<EcsId>)entries) {  }
-		public EntityType(IEnumerable<EcsId> entries)
+		public EcsType(IEnumerable<EcsId> entries)
 		{
 			_entries = entries
 				.OrderBy(id => id)
@@ -38,14 +38,14 @@ namespace gaemstone
 			=> _entries.Contains(value);
 
 
-		public EntityType Add(params EcsId[] values)
+		public EcsType Add(params EcsId[] values)
 			=> Add((IEnumerable<EcsId>)values);
-		public EntityType Add(IEnumerable<EcsId> values)
+		public EcsType Add(IEnumerable<EcsId> values)
 			=> new(_entries.Concat(values));
 
-		public EntityType Remove(params EcsId[] values)
+		public EcsType Remove(params EcsId[] values)
 			=> Remove((IEnumerable<EcsId>)values);
-		public EntityType Remove(IEnumerable<EcsId> values)
+		public EcsType Remove(IEnumerable<EcsId> values)
 			=> new(_entries.Except(values));
 
 
@@ -54,19 +54,19 @@ namespace gaemstone
 		IEnumerator IEnumerable.GetEnumerator()
 			=> GetEnumerator();
 
-		public bool Equals(EntityType? other)
+		public bool Equals(EcsType? other)
 			=> (other is not null) && Enumerable.SequenceEqual(_entries, other._entries);
 		public override bool Equals(object? obj)
-			=> Equals(obj as EntityType);
+			=> Equals(obj as EcsType);
 		public override int GetHashCode() => _hashCode;
 
-		public static bool operator ==(EntityType left, EntityType right)
+		public static bool operator ==(EcsType left, EcsType right)
 			=> object.ReferenceEquals(left, right) || left.Equals(right);
-		public static bool operator !=(EntityType left, EntityType right)
+		public static bool operator !=(EcsType left, EcsType right)
 			=> !(left == right);
 
 		public override string ToString()
-			=> $"EntityType({string.Join(", ", this)})";
+			=> $"EcsType({string.Join(", ", this)})";
 		public string ToPrettyString(Universe universe)
 			=> $"[{string.Join(", ", this.Select(id => id.ToPrettyString(universe)))}]";
 	}
