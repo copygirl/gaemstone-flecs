@@ -71,9 +71,13 @@ namespace gaemstone
 				var newColumns = ((IEnumerable<Array>)newArchetype.Columns).GetEnumerator();
 				foreach (var column in record.Archetype.Columns) {
 					newColumns.MoveNext();
-					// Skip any columns that don't match.
-					// (When adding single value, this only occurs once.)
-					while (column.GetType() != newColumns.Current.GetType()) newColumns.MoveNext();
+					// Skip non-component columns.
+					if (column == null) continue;
+					// Skip the columns in newArchetype that don't exist in record.Archetype.
+					// Since columns are built from EntityType which is sorted, MoveNext works.
+					// This could technically be an if-statement, because this can only occur once
+					// when adding a single entry, but was left a while-loop for the sake of clarity.
+					while (column.GetType() != newColumns.Current?.GetType()) newColumns.MoveNext();
 					// Copy value from old column to new one.
 					Array.Copy(column, record.Row, newColumns.Current, newRow, 1);
 				}
