@@ -18,7 +18,9 @@ namespace gaemstone
 		public int Count => _entries.Count;
 		public EntityId this[int index] => _entries[index];
 
-		private EntityType(IEnumerable<EntityId> entries)
+		public EntityType(params EntityId[] entries)
+			: this((IEnumerable<EntityId>)entries) {  }
+		public EntityType(IEnumerable<EntityId> entries)
 		{
 			_entries = entries
 				.OrderBy(id => id)
